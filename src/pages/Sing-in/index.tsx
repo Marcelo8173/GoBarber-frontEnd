@@ -1,6 +1,6 @@
 import React, {useRef, useCallback} from 'react';
 import {Container, Content, AnimationContainer, Background} from './styled';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
@@ -23,6 +23,7 @@ const SigIn: React.FC = () => {
 
     const { singIn } = useAuth() ;
     const { addToast } = useToast();
+    const history = useHistory();
 
     const HandleSubmit = useCallback(async(data: singInFormData) => {
         formRef.current?.setErrors({});
@@ -41,6 +42,9 @@ const SigIn: React.FC = () => {
                     password: data.password,
                 });
 
+
+                history.push('/painel_de_controle');
+
             } catch (error) {
                 if(error instanceof Yup.ValidationError){
                     const erros = getValidationErros(error)
@@ -53,7 +57,7 @@ const SigIn: React.FC = () => {
                  description: 'Ocorreu um erro ao fazer login, reveja as credencias'
                 });
             }
-        },[singIn, addToast]);
+        },[singIn, addToast, history]);
 
     return(
         <Container>
