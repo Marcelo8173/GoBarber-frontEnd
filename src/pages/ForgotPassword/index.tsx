@@ -1,63 +1,70 @@
-import React, {useRef, useCallback} from 'react';
+import React, {useRef, useCallback, useState} from 'react';
 import {Container, Content, AnimationContainer, Background} from './styled';
 import { Link, useHistory } from 'react-router-dom';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 import getValidationErros from '../../utils/getValidationErros';
-import {FiLogIn, FiMail, FiLock} from 'react-icons/fi';
+import {FiLogIn, FiMail} from 'react-icons/fi';
 import LogoGoBarber from '../../assets/logo.svg';
 import Input from '../../components/input/input';
 import Button from '../../components/button/index';
-
-import {useAuth} from '../../hooks/AuthContext';
 import { useToast } from '../../hooks/Toast';
+import api from '../../services/api';
 
-interface singInFormData{
+interface ForgotPasswordData{
     email: string;
-    password: string;
 }
 
-const SigIn: React.FC = () => {
+const ForgotPassword: React.FC = () => {
     const formRef = useRef<FormHandles>(null);
-
-    const { singIn } = useAuth() ;
+    const [loading, setLoading] = useState(false);
     const { addToast } = useToast();
     const history = useHistory();
 
-    const HandleSubmit = useCallback(async(data: singInFormData) => {
+    const HandleSubmit = useCallback(async(data: ForgotPasswordData) => {
         formRef.current?.setErrors({});
             try {
+                //criando o loading
+                setLoading(true);
                 const schema = Yup.object().shape({
                     email: Yup.string().email().required('E-mail obrigatorio'),
-                    password: Yup.string().required('Senha obrigatoria'),
+                   
                 });
     
                 await schema.validate(data,{
                     abortEarly: false,
                 });
                 
-                await singIn({
-                    email: data.email,
-                    password: data.password,
-                });
+                //recuperação de senha
+                await api.post('/password/forgot',{
+                    email: data.email
+                })
 
-
-                history.push('/painel_de_controle');
+                addToast({
+                    title: 'Recuperação de senha',
+                    description: 'E-mail de recuperação enviado, cheque sua caixa de entrada',
+                    type: 'sucess',
+                })
+                // history.push('/painel_de_controle');
 
             } catch (error) {
                 if(error instanceof Yup.ValidationError){
                     const erros = getValidationErros(error)
                     formRef.current?.setErrors(erros);
+
+                    return;
                 }
                 //disparar um toast
                 addToast({
                  type: 'error',
-                 title: 'Erro na autenticação',
-                 description: 'Ocorreu um erro ao fazer login, reveja as credencias'
+                 title: 'Erro na recuperação de senha',
+                 description: 'Ocorreu um erro ao fazer a recuperação de senha, tenta novamente'
                 });
+            } finally{
+                setLoading(false);
             }
-        },[singIn, addToast, history]);
+        },[addToast, history]);
 
     return(
         <Container>
@@ -65,18 +72,17 @@ const SigIn: React.FC = () => {
                 <AnimationContainer>
                     <img src={LogoGoBarber} alt="Logo GoBarber"/>
                     <Form ref={formRef} onSubmit={HandleSubmit}>
-                        <h1>Faça seu logon</h1>
+                        <h1>Recuperar senha</h1>
 
                         <Input name="email" icon={FiMail} placeholder="E-mail"/>
-                        <Input name="password" icon={FiLock} type="password" placeholder="Senha"/>
-                        <Button type="submit">Entrar</Button>
+        
+                        <Button loading={loading} type="submit">Recuperar senha</Button>
 
-                        <Link to="/recuperar_senha">Esqueci minha senha</Link>
                     </Form>
 
                     <Link to="/cadastrar">
                         <FiLogIn/>
-                        Criar conta</Link>
+                        Voltar ao login</Link>
                 </AnimationContainer>
             </Content>
 
@@ -85,4 +91,4 @@ const SigIn: React.FC = () => {
     )
 }
 
-export default SigIn;
+export default ForgotPassword;
