@@ -64,7 +64,7 @@ const ForgotPassword: React.FC = () => {
             } finally{
                 setLoading(false);
             }
-        },[addToast, history]);
+        },[addToast]);
 
     return(
         <Container>

@@ -33,8 +33,11 @@ export const Authprovider: React.FC = ({children}) => {
         const user = localStorage.getItem('@goBarber: user');
 
         if(token && user){
+            api.defaults.headers.authorization = `Bearer ${token}`;
+
             return{ token, user: JSON.parse(user)};
         };
+
 
         return {} as AuthState;
     });
@@ -50,6 +53,8 @@ const singIn = useCallback( async ({email, password}) =>{
 
         localStorage.setItem('@goBarber: token', token);
         localStorage.setItem('@goBarber: user', JSON.stringify(user));
+
+        api.defaults.headers.authorization = `Bearer ${token}`;
 
         setData({token, user});
     }, []);
