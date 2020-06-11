@@ -7,12 +7,13 @@ import {useField} from '@unform/core';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement>{
     name: string;
+    containerStyle?: object;
     icon?: React.ComponentType<IconBaseProps>;
 }
 
 
 
-const Input: React.FC<InputProps> = ({name, icon: Icon, ...rest}) => {
+const Input: React.FC<InputProps> = ({name, containerStyle={}, icon: Icon, ...rest}) => {
     const InputRef  = useRef<HTMLInputElement>(null);
     const [isFocus, setIsFocus] = useState(false);
     const [isField, setIsfield] = useState(false);
@@ -33,20 +34,23 @@ const Input: React.FC<InputProps> = ({name, icon: Icon, ...rest}) => {
     }, []);
     
     useEffect(()=>{
+        
         registerField({
             name: fieldName,
             ref: InputRef.current,
             path: 'value',
+        
         })
     }, [fieldName, registerField]);
 
     return(
-        <Container isErrored={!!error} isField={isField} isFoucosed={isFocus}>
+        <Container style={containerStyle} isErrored={!!error} isField={isField} isFoucosed={isFocus}>
             {Icon && <Icon size={20} />}
             <input
             onFocus={handleInputFocus}
             onBlur={handleInputBlur} 
             ref={InputRef} {...rest}
+            defaultValue={defaultValue}
             />
 
             {error && <Error title={error}>

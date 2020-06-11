@@ -4,6 +4,7 @@ import api from '../services/api';
 interface User{
     id: string;
     name: string;
+    email:string;
     avatar_url: string;
 
 }
@@ -22,6 +23,7 @@ interface AuthContextData{
     user: User;
     singIn(credentias: singInCredentias): Promise<void>;
     singOut(): void;
+    updateUser(user: User): void;
 };
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -67,8 +69,17 @@ const singOut = useCallback(() => {
     setData({} as AuthState);
 }, []);
 
+    const updateUser = useCallback((user: User)=>{
+        
+        localStorage.setItem('@goBarber: user', JSON.stringify(user));
+        setData({
+            token: data.token,
+            user,
+        })
+    },[setData, data.token])
+
     return(
-        <AuthContext.Provider value = {{user: data.user, singIn, singOut}}>
+        <AuthContext.Provider value = {{user: data.user, singIn, singOut, updateUser}}>
             {children}
         </AuthContext.Provider>
     );
