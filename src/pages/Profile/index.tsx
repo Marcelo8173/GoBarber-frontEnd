@@ -15,7 +15,9 @@ import { useAuth } from '../../hooks/AuthContext';
 interface ProfileFormData{
     name: string;
     email: string;
+    old_password: string;
     password: string;
+    password_confirmation:string;  
 }
 
 const Profile: React.FC = () => {
@@ -32,21 +34,50 @@ const Profile: React.FC = () => {
             const schema = Yup.object().shape({
                 name: Yup.string().required('Nome obrigatorio'),
                 email: Yup.string().email().required('Email obrigatorio'),
-                password: Yup.string().min(6, 'No minimo 6 letras'),
+                old_password: Yup.string(),
+                
+                password: Yup.string().when('old_password',{
+                    is: val => !!val.length,
+                    then: Yup.string().required('Campo obrigatorio'),
+                    otherwise: Yup.string(),
+                }),
+                
+                password_confirmation: Yup.string().when('old_password',{
+                    is: val => !!val.length,
+                    then: Yup.string().required('Campo obrigatorio'),
+                    otherwise: Yup.string(),
+                })
+                .oneOf(
+                    [Yup.ref('password'), null],
+                    'Confirmação incorreta',
+                )
             });
 
             await schema.validate(data,{
                 abortEarly: false,
             });
 
-            await api.post('/users', data);
+            //enviando os dados deparados para a api
+            const {name, email, old_password, password, password_confirmation } = data;
+            
+            const formData = Object.assign({
+                name,
+                email,
+            }, old_password ? {
+                old_password,
+                password,
+                password_confirmation
+            }: {});
+
+            const responseUpdate = await api.put('/profile', data);
+
+            updateUser(responseUpdate.data);
 
             history.push('/');
 
             addToast({
                 type: 'sucess',
-                title: 'Cadastro realizado com sucesso',
-                description: 'Você já pode fazer o Logon',
+                title: 'Perfil atualizado com sucesso',
             })
         } catch (error) {
             // const erros = getValidationErros(error)
@@ -58,8 +89,8 @@ const Profile: React.FC = () => {
             //disparar um toast
             addToast({
              type: 'error',
-             title: 'Erro no cadastro',
-             description: 'Ocorreu um erro ao fazer Cadastro, tente novamente'
+             title: 'Erro na atualização do perfil',
+             description: 'Ocorreu um erro ao fazer a atualização do perfil, tente novamente'
             });
         }
     },[addToast, history])
@@ -114,6 +145,7 @@ const Profile: React.FC = () => {
 
                     <Input name="name" icon={FiUser} placeholder="Nome"/>
                     <Input name="email" icon={FiMail} placeholder="E-mail"/>
+                    
                     <Input 
                     containerStyle={{marginTop: '24px'}}
                     name="old_password" 
@@ -123,7 +155,7 @@ const Profile: React.FC = () => {
                     />
                         
                     <Input name="password" type="password" icon={FiLock} placeholder="Nova senha"/>
-                    <Input name="password_confirmation" type="password" icon={FiLock} placeholder="Confirmar atual"/>
+                    <Input name="password_confirmation" type="password" icon={FiLock} placeholder="Confirmar nova senha"/>
 
                     <Button type="submit">Confirmar mudanças</Button>
 
