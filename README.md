@@ -33,6 +33,7 @@ This app features all the latest tools and practices in web development like sty
 - Clone this repository
 - Use yarn or npm init to install dependencies
 - Use yarn start or npm start to init this project
+- Use gobarber api available on `https://github.com/Marcelo8173/Gobarber-app`
 
 ## License
 
